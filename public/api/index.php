@@ -1,6 +1,6 @@
 <?php
 header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Headers: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method");
+header("Access-Control-Allow-Headers: Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method");
 header('Access-Control-Allow-Methods: POST, GET, PATCH, DELETE');
 header("Allow: GET, POST, PATCH, DELETE");
 
@@ -24,16 +24,21 @@ define('JWT_EXP', 300); // segundos
 use \Firebase\JWT\JWT;
 
 $metodo = strtolower($_SERVER['REQUEST_METHOD']);
-$accion = explode('/', strtolower($_GET['accion']));
-$funcionNombre = $metodo . ucfirst($accion[0]);
-$parametros = array_slice($accion, 1);
+$comandos = explode('/', strtolower($_GET['comando']));
+$funcionNombre = $metodo.ucfirst($comandos[0]);
+
+$parametros = array_slice($comandos, 1);
 if (count($parametros) >0 && $metodo == 'get') {
     $funcionNombre = $funcionNombre.'ConParametros';
 }
+
 if (function_exists($funcionNombre)) {
-    call_user_func_array ($funcionNombre, $parametros);
+    call_user_func_array($funcionNombre, $parametros);
 } else {
-    outputError(400);
+    header(' ', true, 400);
+}
+
+
 
 function outputJson($data, $codigo = 200)
 {
@@ -42,11 +47,15 @@ function outputJson($data, $codigo = 200)
     print json_encode($data);
 }
 
+
 function outputError($codigo = 500)
 {
     switch ($codigo) {
         case 400:
             header($_SERVER["SERVER_PROTOCOL"] . " 400 Bad request", true, 400);
+            die;
+        case 401:
+            header($_SERVER["SERVER_PROTOCOL"] . " 401 Unauthorized", true, 401);
             die;
         case 404:
             header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", true, 404);
@@ -58,11 +67,81 @@ function outputError($codigo = 500)
     }
 }
 
+function autenticar($usuario, $clave)
+{
+    if ($usuario=='pepe@pepe.com' && $clave=='123') {
+        return [
+            'nombre' => 'Pepe',
+            'id'     => 15,
+        ];
+    }
+    if ($usuario=='coco@coco.com' && $clave=='456') {
+        return [
+            'nombre' => 'Coco',
+            'id'     => 12,
+        ];
+    }
+    return false;
+}
+
+
+function requiereLogin()
+{
+    try {
+        $headers = getallheaders();
+        if (!isset($headers['Authorization'])) {
+            throw new Exception("Token requerido", 1);
+        }
+        list($jwt) = sscanf($headers['Authorization'], 'Bearer %s');
+        $decoded = JWT::decode($jwt, JWT_KEY, [JWT_ALG]);
+    } catch(Exception $e) {
+        outputError(401);
+    }
+    return $decoded;
+}
+
+function getPrivado()
+{
+    $payload = requiereLogin();
+    outputJson(['data' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.']);
+}
+
+function getPerfil()
+{
+    $payload = requiereLogin();
+    outputJson(['id' => $payload->uid, 'nombre' => $payload->nombre]);
+}
+
+function postLogin()
+{
+    $loginData = json_decode(file_get_contents("php://input"), true);
+    $logged = autenticar($loginData['email'], $loginData['clave']);
+
+    if ($logged===false) {
+        outputError(401);
+    }
+    $payload = [
+        'uid'       => $logged['id'],
+        'nombre'    => $logged['nombre'],
+        'exp'       => time() + JWT_EXP,
+    ];
+    $jwt = JWT::encode($payload, JWT_KEY, JWT_ALG);
+    outputJson(['jwt'=>$jwt]);
+}
+
+function postRefresh()
+{
+    $payload = requiereLogin();
+    $payload->exp = time() + JWT_EXP;
+    $jwt = JWT::encode($payload, JWT_KEY);
+    outputJson(['jwt'=>$jwt]);
+}
+
 
 /******************* INICIALIZACION Y RESTABLECIMIENTO **********************************************/
 function inicializarBBDD()
 {
-    return $bd = new SQLite3(__DIR__ . '/../../adicional/peliculas.db');
+    return $bd = new SQLite3(__DIR__ . '/../../adicional/SHOPTIENDACM.db');
 }
 
 function postRestablecer()
@@ -89,11 +168,11 @@ function getGeneros()
 function getPeliculas()
 {
     $bd = inicializarBBDD();
-    $result = $bd->query('SELECT peliculas.id AS id, peliculas.titulo AS titulo, peliculas.anio AS anio, GROUP_CONCAT(generos.descripcion) AS generos FROM peliculas LEFT JOIN peliculas_generos ON peliculas.id=peliculas_generos.id_pelicula LEFT JOIN generos ON generos.id=peliculas_generos.id_genero GROUP BY peliculas.id');
+    $result = $bd->query('select * from localidad');
     $ret = [];
     while ($fila = $result->fetchArray(SQLITE3_ASSOC)) {
         settype($fila['id'], 'integer');
-        $fila['generos'] = $fila['generos']=='' ? [] : explode(',', $fila['generos']);
+        //$fila['generos'] = $fila['generos']=='' ? [] : explode(',', $fila['generos']);
         $ret[] = $fila;
     }
     outputJson($ret);
@@ -148,70 +227,4 @@ function deletePeliculas($id)
     $bd = inicializarBBDD();
     $result = $bd->query("DELETE FROM peliculas WHERE id=$id");
     outputJson([]);
-}
-
-
-/************************** JWT AUTENTICACIONES *******************************************************/
-function autenticar($usuario, $clave)
-{
-    if ($usuario=='pepe@pepe.com' && $clave=='123') {
-        return [
-            'nombre' => 'Pepe',
-            'id'     => 15,
-        ];
-    }
-    if ($usuario=='coco@coco.com' && $clave=='456') {
-        return [
-            'nombre' => 'Coco',
-            'id'     => 12,
-        ];
-    }
-    return false;
-}
-
-
-function requiereLogin()
-{
-    try {
-        $headers = getallheaders();
-        if (!isset($headers['Authorization'])) {
-            throw new Exception("Token requerido", 1);
-        }
-        list($jwt) = sscanf($headers['Authorization'], 'Bearer %s');
-        $decoded = JWT::decode($jwt, JWT_KEY, [JWT_ALG]);
-    } catch(Exception $e) {
-        outputError(401);
-    }
-    return $decoded;
-}
-
-function getPerfil()
-{
-    $payload = requiereLogin();
-    output(['id' => $payload->uid, 'nombre' => $payload->nombre]);
-}
-
-function postLogin()
-{
-    $loginData = json_decode(file_get_contents("php://input"), true);
-    $logged = autenticar($loginData['email'], $loginData['clave']);
-
-    if ($logged===false) {
-        outputError(401);
-    }
-    $payload = [
-        'uid'       => $logged['id'],
-        'nombre'    => $logged['nombre'],
-        'exp'       => time() + JWT_EXP,
-    ];
-    $jwt = JWT::encode($payload, JWT_KEY, JWT_ALG);
-    output(['jwt'=>$jwt]);
-}
-
-function postRefresh()
-{
-    $payload = requiereLogin();
-    $payload->exp = time() + JWT_EXP;
-    $jwt = JWT::encode($payload, JWT_KEY);
-    output(['jwt'=>$jwt]);
 }
