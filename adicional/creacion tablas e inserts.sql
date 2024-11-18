@@ -1,161 +1,92 @@
-/************************ Creacion de la base de datos ***********************************/
-if not exists	(
-				select	*
-				from	sys.databases db
-				where	db.name = 'SHOPTIENDAC&M'
-				)
-CREATE DATABASE [SHOPTIENDAC&M];
-GO
-
-USE [SHOPTIENDAC&M];
-GO
-
-/*****************************************************************************************/
-/************************************* Creacion de tablas ********************************/
 /* Localidad */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'LOCALIDAD'
-						)
-CREATE TABLE LOCALIDAD	(
-						ID_LOCALIDAD INTEGER IDENTITY(1,1) NOT NULL,
-						CODIGO VARCHAR(10) NOT NULL,
-						NOMBRE VARCHAR(50) NOT NULL
-
-						CONSTRAINT PK_LOCALIDAD PRIMARY KEY (ID_LOCALIDAD)
-						) ON [PRIMARY]
-						GO
+CREATE TABLE IF NOT EXISTS LOCALIDAD (
+    ID_LOCALIDAD INTEGER PRIMARY KEY AUTOINCREMENT,
+    CODIGO TEXT NOT NULL,
+    NOMBRE TEXT NOT NULL
+);
 
 /* Rol */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'ROL'
-						)
-CREATE TABLE ROL	(
-						ID_ROL INTEGER IDENTITY(1,1) NOT NULL,
-						CODIGO VARCHAR(10) NOT NULL,
-						NOMBRE VARCHAR(50) NOT NULL
-
-						CONSTRAINT PK_ROL PRIMARY KEY (ID_ROL)
-						) ON [PRIMARY]
-
+CREATE TABLE IF NOT EXISTS ROL (
+    ID_ROL INTEGER PRIMARY KEY AUTOINCREMENT,
+    CODIGO TEXT NOT NULL,
+    NOMBRE TEXT NOT NULL
+);
 
 /* USUARIO */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'USUARIO'
-						)
-CREATE TABLE USUARIO	(
-						ID_USUARIO INTEGER IDENTITY(1,1) NOT NULL,
-						NOMBRE VARCHAR(50) NOT NULL,
-						APELLIDO VARCHAR(50) NOT NULL,
-						DNI VARCHAR(15) NOT NULL,
-						EDAD INTEGER NULL,
-						EMAIL VARCHAR(50) NOT NULL,
-						DOMICILIO VARCHAR(100) NULL,
-						ID_LOCALIDAD INTEGER,
-						ID_ROL INTEGER NOT NULL,
-						TOKEN VARCHAR(255) NULL,
-						
-
-						CONSTRAINT PK_USUARIO PRIMARY KEY (ID_USUARIO),
-						CONSTRAINT FK_USUARIO_LOCALIDAD FOREIGN KEY (ID_LOCALIDAD) REFERENCES LOCALIDAD (ID_LOCALIDAD),
-						CONSTRAINT FK_USUARIO_ROL FOREIGN KEY (ID_ROL) REFERENCES ROL(ID_ROL)
-						) ON [PRIMARY]
-						GO
+CREATE TABLE IF NOT EXISTS USUARIO (
+    ID_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT,
+    NOMBRE TEXT NOT NULL,
+    APELLIDO TEXT NOT NULL,
+    DNI TEXT NOT NULL,
+    EDAD INTEGER,
+    EMAIL TEXT NOT NULL,
+    PASSWORD TEXT NOT NULL,
+    DOMICILIO TEXT,
+    ID_LOCALIDAD INTEGER,
+    ID_ROL INTEGER NOT NULL,
+    TOKEN TEXT,
+    FOREIGN KEY (ID_LOCALIDAD) REFERENCES LOCALIDAD (ID_LOCALIDAD),
+    FOREIGN KEY (ID_ROL) REFERENCES ROL(ID_ROL)
+);
 
 /* Marca */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'MARCA'
-						)
-CREATE TABLE MARCA		(
-						ID_MARCA INTEGER IDENTITY (1,1) NOT NULL,
-						NOMBRE_MARCA VARCHAR(50) NOT NULL,
-						
-						CONSTRAINT PK_MARCA PRIMARY KEY (ID_MARCA)
-						)ON [PRIMARY]
-						GO
+CREATE TABLE IF NOT EXISTS MARCA (
+    ID_MARCA INTEGER PRIMARY KEY AUTOINCREMENT,
+    NOMBRE_MARCA TEXT NOT NULL
+);
 
 /* Categoria */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'CATEGORIA'
-						)
-CREATE TABLE CATEGORIA	(
-						ID_CATEGORIA INTEGER IDENTITY (1,1) NOT NULL,
-						NOMBRE_CATEGORIA VARCHAR(50) NOT NULL,
-						
-						CONSTRAINT PK_CATEGORIA PRIMARY KEY (ID_CATEGORIA)
-						)ON [PRIMARY]
-						GO
+CREATE TABLE IF NOT EXISTS CATEGORIA (
+    ID_CATEGORIA INTEGER PRIMARY KEY AUTOINCREMENT,
+    NOMBRE_CATEGORIA TEXT NOT NULL
+);
 
 /* Producto */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'PRODUCTO'
-						)
-
-CREATE TABLE PRODUCTO	(
-						ID_PRODUCTO INTEGER IDENTITY(1,1) NOT NULL,
-						NOMBRE VARCHAR(100) NOT NULL,
-						ID_CATEGORIA INTEGER NOT NULL,
-						PRECIO DECIMAL(10, 2)NOT NULL,
-						STOCK INTEGER NOT NULL,
-						ID_MARCA INTEGER NOT NULL,
-
-						CONSTRAINT PK_PRODUCTO PRIMARY KEY (ID_PRODUCTO),
-						CONSTRAINT FK_PRODUCTO_CATEGORIA FOREIGN KEY (ID_CATEGORIA) REFERENCES CATEGORIA (ID_CATEGORIA),
-						CONSTRAINT FK_PRODUCTO_MARCA FOREIGN KEY (ID_MARCA) REFERENCES MARCA (ID_MARCA)
-						) ON [PRIMARY]
-						
-						GO
+CREATE TABLE IF NOT EXISTS PRODUCTO (
+    ID_PRODUCTO INTEGER PRIMARY KEY AUTOINCREMENT,
+    NOMBRE TEXT NOT NULL,
+    ID_CATEGORIA INTEGER NOT NULL,
+    PRECIO REAL NOT NULL,
+    STOCK INTEGER NOT NULL,
+    ID_MARCA INTEGER NOT NULL,
+    FOREIGN KEY (ID_CATEGORIA) REFERENCES CATEGORIA (ID_CATEGORIA),
+    FOREIGN KEY (ID_MARCA) REFERENCES MARCA (ID_MARCA)
+);
 
 /* Venta */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'VENTA'
-						)
-
-CREATE TABLE VENTA		(
-						ID_VENTA INTEGER IDENTITY(1,1) NOT NULL,
-						FECHA_PEDIDO DATE NOT NULL,
-						ID_VENDEDOR INTEGER NOT NULL,
-						ID_CLIENTE INTEGER NOT NULL,
-						FECHA_ENTREGA DATE NULL,
-
-						CONSTRAINT PK_VENTA PRIMARY KEY (ID_VENTA),
-						CONSTRAINT FK_VENTA_VENDEDOR FOREIGN KEY (ID_VENDEDOR) REFERENCES USUARIO (ID_USUARIO),
-						CONSTRAINT FK_VENTA_CLIENTE FOREIGN KEY (ID_CLIENTE) REFERENCES USUARIO (ID_USUARIO)
-						) ON [PRIMARY]
-						
+CREATE TABLE IF NOT EXISTS VENTA (
+    ID_VENTA INTEGER PRIMARY KEY AUTOINCREMENT,
+    FECHA_PEDIDO TEXT NOT NULL,
+    ID_VENDEDOR INTEGER NOT NULL,
+    ID_CLIENTE INTEGER NOT NULL,
+    FECHA_ENTREGA TEXT,
+    FOREIGN KEY (ID_VENDEDOR) REFERENCES USUARIO (ID_USUARIO),
+    FOREIGN KEY (ID_CLIENTE) REFERENCES USUARIO (ID_USUARIO)
+);
 
 /* Pedido */
-if not exists			(
-						select	* 
-						from	sys.tables t 
-						where	t.name= 'PEDIDO'
-						)
-					
-CREATE TABLE PEDIDO		(
-						ID_PEDIDO INTEGER IDENTITY(1,1) NOT NULL,
-						ID_VENTA INTEGER NOT NULL,
-						ID_PRODUCTO INTEGER NOT NULL,
-						CANTIDAD INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS PEDIDO (
+    ID_PEDIDO INTEGER PRIMARY KEY AUTOINCREMENT,
+    ID_VENTA INTEGER NOT NULL,
+    ID_PRODUCTO INTEGER NOT NULL,
+    CANTIDAD INTEGER NOT NULL,
+    FOREIGN KEY (ID_VENTA) REFERENCES VENTA (ID_VENTA),
+    FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO (ID_PRODUCTO)
+);
 
-						CONSTRAINT PK_PEDIDO PRIMARY KEY (ID_PEDIDO),
-						CONSTRAINT FK_PEDIDO_VENTA FOREIGN KEY (ID_VENTA) REFERENCES VENTA (ID_VENTA),
-						CONSTRAINT FK_PEDIDO_PRODUCTO FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO (ID_PRODUCTO)
-						) ON [PRIMARY]
-
-
+/* Publicacion */
+CREATE TABLE IF NOT EXISTS PUBLICACION (
+	ID_PUBLICACION INTEGER PRIMARY KEY AUTOINCREMENT,
+	ID_VENDEDOR INTEGER NOT NULL,
+	ID_PRODUCTO INTEGER NOT NULL,
+	STOCK INTEGER NOT NULL,
+	ACTIVA INTEGER NOT NULL,
+	IMAGENES TEXT NULL,
+	
+	FOREIGN KEY (ID_VENDEDOR) REFERENCES USUARIO (ID_USUARIO),
+	FOREIGN KEY (ID_PRODUCTO) REFERENCES PRODUCTO (ID_PRODUCTO)
+	
+);
 /*****************************************************************************************/
 /*************************************Inercion de datos **********************************/
 
@@ -177,48 +108,51 @@ VALUES	('CABA','Ciudad Autonoma de Buenos Aires'),
 		('IGU', 'Iguazu');
 
 
-INSERT INTO USUARIO (nombre, apellido, dni, edad, email, domicilio, id_localidad, id_rol, token)
+INSERT INTO USUARIO (nombre, apellido, dni, edad, email, password, domicilio, id_localidad, id_rol, token)
 VALUES
-    ('Laura', 'Torres', '56789012', 28, 'laura.torres@email.com', 'Calle Luna 111', 1, 3, NULL),  -- Rol Cliente
-    ('Carlos', 'Ramírez', '67890123', 32, 'carlos.ramirez@email.com', 'Calle Estrella 222', 2, 2, NULL),
-    ('Sofía', 'Hernández', '78901234', 27, 'sofia.hernandez@email.com', 'Avenida del Mar 333', 3, 2, NULL),
-    ('Andrés', 'Fernández', '89012345', 45, 'andres.fernandez@email.com', 'Calle del Río 444', 4, 1, NULL),
-    ('Lucía', 'Castillo', '90123456', 31, 'lucia.castillo@email.com', 'Calle Verde 555', 5, 3, NULL),  -- Rol Cliente
-    ('Javier', 'Moreno', '01234567', 38, 'javier.moreno@email.com', 'Calle del Cielo 666', 1, 1, NULL),
-    ('Camila', 'Salas', '12345678', 29, 'camila.salas@email.com', 'Calle de la Luna 777', 2, 3, NULL),  -- Rol Cliente
-    ('Diego', 'Rojas', '23456789', 34, 'diego.rojas@email.com', 'Avenida del Sol 888', 3, 1, NULL),
-    ('Valentina', 'Cruz', '34567890', 24, 'valentina.cruz@email.com', 'Calle de la Paz 999', 4, 3, NULL),  -- Rol Cliente
-    ('Fernando', 'Vázquez', '45678901', 50, 'fernando.vazquez@email.com', 'Calle de la Esperanza 1010', 5, 1, NULL),
-    ('Natalia', 'Díaz', '56789013', 26, 'natalia.diaz@email.com', 'Calle de la Alegría 1111', 1, 3, NULL),  -- Rol Cliente
-    ('Esteban', 'Castro', '67890124', 36, 'esteban.castro@email.com', 'Calle del Viento 1212', 2, 2, NULL),
-    ('Clara', 'González', '78901235', 23, 'clara.gonzalez@email.com', 'Avenida de la Libertad 1313', 3, 3, NULL),  -- Rol Cliente
-    ('Ricardo', 'Paredes', '89012346', 41, 'ricardo.paredes@email.com', 'Calle del Futuro 1414', 4, 2, NULL),
-    ('Isabella', 'Maldonado', '90123457', 33, 'isabella.maldonado@email.com', 'Calle de la Unidad 1515', 5, 1, NULL),
-    ('Luisana', 'Pinto', '01234568', 30, 'luisana.pinto@email.com', 'Calle del Águila 1616', 1, 3, NULL),  -- Rol Cliente
-    ('Gustavo', 'Benitez', '12345679', 39, 'gustavo.benitez@email.com', 'Calle del Tigre 1717', 2, 1, NULL),
-    ('Patricia', 'Cano', '23456780', 29, 'patricia.cano@email.com', 'Avenida del Fuego 1818', 3, 3, NULL),  -- Rol Cliente
-    ('Victor', 'Acosta', '34567891', 42, 'victor.acosta@email.com', 'Calle del Eco 1919', 4, 1, NULL),
-    ('Tania', 'Ceballos', '45678902', 25, 'tania.ceballos@email.com', 'Calle del Bosque 2020', 5, 2, NULL),
-    ('Alberto', 'Moya', '56789014', 37, 'alberto.moya@email.com', 'Calle de la Montaña 2121', 1, 1, NULL),
-    ('Cecilia', 'Mora', '67890125', 28, 'cecilia.mora@email.com', 'Calle del Agua 2222', 2, 2, NULL),
-    ('Martín', 'Reyes', '78901236', 34, 'martin.reyes@email.com', 'Avenida de la Vida 2323', 3, 1, NULL),
-    ('Gloria', 'Figueroa', '89012347', 49, 'gloria.figueroa@email.com', 'Calle del Árbol 2424', 4, 2, NULL),
-    ('Fernando', 'Salazar', '90123458', 26, 'fernando.salazar@email.com', 'Calle de la Eternidad 2525', 5, 3, NULL),  -- Rol Cliente
-    ('Mariano', 'Galindo', '01234569', 30, 'mariano.galindo@email.com', 'Calle del Silencio 2626', 1, 2, NULL),
-    ('Sandra', 'Núñez', '12345680', 32, 'sandra.nunez@email.com', 'Calle del Destino 2727', 2, 3, NULL),  -- Rol Cliente
-    ('Alina', 'Pérez', '23456781', 24, 'alina.perez@email.com', 'Avenida de los Ángeles 2828', 3, 1, NULL),
-    ('Nicolás', 'Sotelo', '34567892', 40, 'nicolas.sotelo@email.com', 'Calle del Corazón 2929', 4, 3, NULL),  -- Rol Cliente
-    ('Evelyn', 'Ríos', '45678903', 35, 'evelyn.rios@email.com', 'Calle del Deseo 3030', 5, 2, NULL),
-    ('Samuel', 'Duarte', '56789015', 38, 'samuel.duarte@email.com', 'Calle del Canto 3131', 1, 1, NULL),
-    ('Mariana', 'Cordero', '67890126', 27, 'mariana.cordero@email.com', 'Calle del Viaje 3232', 2, 3, NULL),  -- Rol Cliente
-    ('Ricardo', 'Torres', '78901237', 33, 'ricardo.torres@email.com', 'Calle del Recuerdo 3333', 3, 2, NULL),
-    ('Carolina', 'Alvarado', '89012348', 45, 'carolina.alvarado@email.com', 'Calle del Horizonte 3434', 4, 1, NULL),
-    ('Ezequiel', 'Bravo', '90123459', 30, 'ezequiel.bravo@email.com', 'Calle de la Luz 3535', 5, 3, NULL),  -- Rol Cliente
-    ('Selene', 'Valdés', '01234570', 29, 'selene.valdes@email.com', 'Calle de la Fuerza 3636', 1, 2, NULL),
-    ('Gabriel', 'López', '12345681', 36, 'gabriel.lopez@email.com', 'Avenida del Amor 3737', 2, 1, NULL),
-    ('Silvana', 'Mendoza', '23456782', 22, 'silvana.mendoza@email.com', 'Calle del Poder 3838', 3, 3, NULL),  -- Rol Cliente
-    ('Héctor', 'Aguirre', '34567893', 41, 'hector.aguirre@email.com', 'Calle del Cambio 3939', 4, 1, NULL),
-    ('Fabiola', 'Quintero', '45678904', 25, 'fabiola.quintero@email.com', 'Calle del Triunfo 4040', 5, 2, NULL);
+    ('Mailen', 'Acosta', '1234567', 21, 'macosta@email.com', 'password123', 'Calle Luna 111', 1, 1, NULL),  
+    ('Camila', 'Losada', '41640294', 26, 'camila.losada@email.com', 'clavecamila', 'Calle Luna 123', 1, 1, NULL),  
+    ('Santiago', 'Fazzini', '25878525', 36, 'sfazzini@email.com', 'passsantiago', 'Calle Luna 456', 1, 1, NULL),  
+    ('Laura', 'Torres', '56789012', 28, 'laura.torres@email.com', 'laurasegura', 'Calle Luna 111', 1, 3, NULL),  
+    ('Carlos', 'Ramírez', '67890123', 32, 'carlos.ramirez@email.com', 'carpass123', 'Calle Estrella 222', 2, 2, NULL),
+    ('Sofía', 'Hernández', '78901234', 27, 'sofia.hernandez@email.com', 'secure123', 'Avenida del Mar 333', 3, 2, NULL),
+    ('Andrés', 'Fernández', '89012345', 45, 'andres.fernandez@email.com', 'andrespass', 'Calle del Río 444', 4, 3, NULL),
+    ('Lucía', 'Castillo', '90123456', 31, 'lucia.castillo@email.com', 'lucypass', 'Calle Verde 555', 5, 3, NULL),  
+    ('Javier', 'Moreno', '01234567', 38, 'javier.moreno@email.com', 'javierclave', 'Calle del Cielo 666', 1, 3, NULL),
+    ('Camila', 'Salas', '12345678', 29, 'camila.salas@email.com', 'salas1234', 'Calle de la Luna 777', 2, 3, NULL),  
+    ('Diego', 'Rojas', '23456789', 34, 'diego.rojas@email.com', 'diegopass', 'Avenida del Sol 888', 3, 3, NULL),
+    ('Valentina', 'Cruz', '34567890', 24, 'valentina.cruz@email.com', 'valenclave', 'Calle de la Paz 999', 4, 3, NULL),  
+    ('Fernando', 'Vázquez', '45678901', 50, 'fernando.vazquez@email.com', 'ferclave50', 'Calle de la Esperanza 1010', 5, 3, NULL),
+    ('Natalia', 'Díaz', '56789013', 26, 'natalia.diaz@email.com', 'natclave26', 'Calle de la Alegría 1111', 1, 3, NULL),  
+    ('Esteban', 'Castro', '67890124', 36, 'esteban.castro@email.com', 'castropass', 'Calle del Viento 1212', 2, 2, NULL),
+    ('Clara', 'González', '78901235', 23, 'clara.gonzalez@email.com', 'clarapass23', 'Avenida de la Libertad 1313', 3, 3, NULL),  
+    ('Ricardo', 'Paredes', '89012346', 41, 'ricardo.paredes@email.com', 'paredes41', 'Calle del Futuro 1414', 4, 2, NULL),
+    ('Isabella', 'Maldonado', '90123457', 33, 'isabella.maldonado@email.com', 'isab33pass', 'Calle de la Unidad 1515', 5, 3, NULL),
+    ('Luisana', 'Pinto', '01234568', 30, 'luisana.pinto@email.com', 'luisana30', 'Calle del Águila 1616', 1, 3, NULL),  
+    ('Gustavo', 'Benitez', '12345679', 39, 'gustavo.benitez@email.com', 'gpass39', 'Calle del Tigre 1717', 2, 3, NULL),
+    ('Patricia', 'Cano', '23456780', 29, 'patricia.cano@email.com', 'cano29clave', 'Avenida del Fuego 1818', 3, 3, NULL),  
+    ('Victor', 'Acosta', '34567891', 42, 'victor.acosta@email.com', 'acosta42', 'Calle del Eco 1919', 4, 3, NULL),
+    ('Tania', 'Ceballos', '45678902', 25, 'tania.ceballos@email.com', 'taniasegura', 'Calle del Bosque 2020', 5, 2, NULL),
+    ('Alberto', 'Moya', '56789014', 37, 'alberto.moya@email.com', 'albert37', 'Calle de la Montaña 2121', 1, 3, NULL),
+    ('Cecilia', 'Mora', '67890125', 28, 'cecilia.mora@email.com', 'mora28clave', 'Calle del Agua 2222', 2, 2, NULL),
+    ('Martín', 'Reyes', '78901236', 34, 'martin.reyes@email.com', 'martin34', 'Avenida de la Vida 2323', 3, 3, NULL),
+    ('Gloria', 'Figueroa', '89012347', 49, 'gloria.figueroa@email.com', 'gloria49', 'Calle del Árbol 2424', 4, 2, NULL),
+    ('Fernando', 'Salazar', '90123458', 26, 'fernando.salazar@email.com', 'fsalazar26', 'Calle de la Eternidad 2525', 5, 3, NULL),  
+    ('Mariano', 'Galindo', '01234569', 30, 'mariano.galindo@email.com', 'galindo30', 'Calle del Silencio 2626', 1, 2, NULL),
+    ('Sandra', 'Núñez', '12345680', 32, 'sandra.nunez@email.com', 'sandran32', 'Calle del Destino 2727', 2, 3, NULL),
+    ('Alina', 'Pérez', '23456781', 24, 'alina.perez@email.com', 'alina24pass', 'Avenida de los Ángeles 2828', 3, 3, NULL),
+    ('Nicolás', 'Sotelo', '34567892', 40, 'nicolas.sotelo@email.com', 'sotelo40clave', 'Calle del Corazón 2929', 4, 3, NULL),  
+    ('Evelyn', 'Ríos', '45678903', 35, 'evelyn.rios@email.com', 'evelyn35pass', 'Calle del Deseo 3030', 5, 2, NULL),
+    ('Samuel', 'Duarte', '56789015', 38, 'samuel.duarte@email.com', 'duarte38clave', 'Calle del Canto 3131', 1, 3, NULL),
+    ('Mariana', 'Cordero', '67890126', 27, 'mariana.cordero@email.com', 'cordero27', 'Calle del Viaje 3232', 2, 3, NULL),  
+    ('Ricardo', 'Torres', '78901237', 33, 'ricardo.torres@email.com', 'torres33', 'Calle del Recuerdo 3333', 3, 2, NULL),
+    ('Carolina', 'Alvarado', '89012348', 45, 'carolina.alvarado@email.com', 'caro45seguro', 'Calle del Horizonte 3434', 4, 3, NULL),
+    ('Ezequiel', 'Bravo', '90123459', 30, 'ezequiel.bravo@email.com', 'bravo30pass', 'Calle de la Luz 3535', 5, 3, NULL),  
+    ('Selene', 'Valdés', '01234570', 29, 'selene.valdes@email.com', 'selene29clave', 'Calle de la Fuerza 3636', 1, 2, NULL),
+    ('Gabriel', 'López', '12345681', 36, 'gabriel.lopez@email.com', 'gabriel36', 'Avenida del Amor 3737', 2, 3, NULL),
+    ('Silvana', 'Mendoza', '23456782', 22, 'silvana.mendoza@email.com', 'mendoza22', 'Calle del Poder 3838', 3, 3, NULL),  
+    ('Héctor', 'Aguirre', '34567893', 41, 'hector.aguirre@email.com', 'aguirre41', 'Calle del Cambio 3939', 4, 3, NULL),
+    ('Fabiola', 'Quintero', '45678904', 25, 'fabiola.quintero@email.com', 'fabiquin25', 'Calle del Triunfo 4040', 5, 2, NULL);
 
 
 
@@ -334,70 +268,70 @@ VALUES	('Laptop HP Pavilion', 1, 749.99, 20, 1),
 
 INSERT INTO venta (fecha_pedido, id_vendedor, id_cliente, fecha_entrega)
 VALUES 
-    ('2024-01-15', 2, 1, '2024-01-20'),
-    ('2024-02-10', 3, 13, NULL),  -- Reemplazado por 13
-    ('2024-03-25', 12, 5, '2024-03-30'),
-    ('2024-04-14', 22, 9, '2024-04-19'),  -- Reemplazado por 9
-    ('2024-05-05', 3, 9, NULL),  -- Reemplazado por 9
-    ('2024-06-17', 12, 1, '2024-06-22'),
-    ('2024-07-21', 22, 35, '2024-07-26'),  -- Reemplazado por 35
-    ('2024-08-03', 2, 32, NULL),  -- Reemplazado por 32
-    ('2024-09-19', 22, 38, '2024-09-24'),
-    ('2024-09-11', 2, 1, NULL),
-    ('2024-05-30', 12, 5, '2024-12-05'),
-    ('2024-01-07', 2, 13, '2024-12-12'),  -- Reemplazado por 13
-    ('2024-01-24', 3, 35, NULL),  -- Reemplazado por 35
-    ('2024-02-02', 12, 5, '2024-02-07'),
-    ('2024-03-10', 22, 38, NULL),
-    ('2024-04-22', 2, 9, '2024-04-27'),  -- Reemplazado por 9
-    ('2024-05-15', 3, 7, NULL),  -- Reemplazado por 7
-    ('2024-06-09', 12, 38, '2024-06-14'),
-    ('2024-07-28', 22, 7, '2024-08-02'),  -- Reemplazado por 7
-    ('2024-08-19', 2, 32, NULL),  -- Reemplazado por 32
-    ('2024-09-06', 22, 35, '2024-09-11'),  -- Reemplazado por 35
-    ('2024-03-15', 3, 9, '2024-10-20'),  -- Reemplazado por 9
-    ('2024-02-27', 2, 7, NULL),  -- Reemplazado por 7
-    ('2024-07-13', 12, 32, '2024-12-18'),  -- Reemplazado por 32
-    ('2024-01-05', 22, 38, NULL),
-    ('2024-02-22', 2, 7, '2024-02-27'),  -- Reemplazado por 7
-    ('2024-03-30', 3, 13, NULL),  -- Reemplazado por 13
-    ('2024-04-09', 12, 32, '2024-04-14'),  -- Reemplazado por 32
-    ('2024-05-25', 22, 35, NULL),  -- Reemplazado por 35
-    ('2024-06-12', 2, 35, '2024-06-17'),  -- Reemplazado por 35
-    ('2024-07-14', 3, 9, '2024-07-19'),  -- Reemplazado por 9
-    ('2024-08-28', 12, 7, NULL),  -- Reemplazado por 7
-    ('2024-09-07', 2, 32, '2024-09-12'),  -- Reemplazado por 32
-    ('2024-02-19', 22, 13, '2024-10-24'),  -- Reemplazado por 13
-    ('2024-01-11', 3, 9, NULL),  -- Reemplazado por 9
-    ('2024-01-15', 2, 32, '2024-01-20'),  -- Reemplazado por 32
-    ('2024-02-10', 12, 7, NULL),  -- Reemplazado por 7
-    ('2024-03-25', 22, 9, '2024-03-30'),  -- Reemplazado por 9
-    ('2024-04-14', 2, 13, '2024-04-19'),  -- Reemplazado por 13
-    ('2024-05-01', 3, 38, '2024-05-05'),
-    ('2024-06-02', 22, 7, '2024-06-07'),  -- Reemplazado por 7
-    ('2024-07-10', 2, 32, '2024-07-12'),  -- Reemplazado por 32
-    ('2024-08-05', 3, 35, '2024-08-10'),  -- Reemplazado por 35
-    ('2024-09-12', 12, 9, '2024-09-15'),  -- Reemplazado por 9
-    ('2024-10-04', 2, 7, NULL),  -- Reemplazado por 7
-    ('2024-11-01', 3, 35, '2024-11-05'),  -- Reemplazado por 35
-    ('2024-12-07', 12, 38, '2024-12-10'),
-    ('2024-01-25', 22, 9, '2024-02-01'),  -- Reemplazado por 9
-    ('2024-02-20', 2, 13, '2024-02-25'),  -- Reemplazado por 13
-    ('2024-03-15', 3, 38, '2024-03-20'),
-    ('2024-04-01', 12, 7, '2024-04-05'),  -- Reemplazado por 7
-    ('2024-05-10', 22, 32, '2024-05-15'),  -- Reemplazado por 32
-    ('2024-06-07', 2, 9, NULL),  -- Reemplazado por 9
-    ('2024-07-20', 3, 35, '2024-07-22'),  -- Reemplazado por 35
-    ('2024-08-15', 12, 35, '2024-08-18'),  -- Reemplazado por 35
-    ('2024-09-01', 2, 7, '2024-09-05'),  -- Reemplazado por 7
-    ('2024-10-10', 3, 32, '2024-10-13'),  -- Reemplazado por 32
-    ('2024-11-03', 12, 13, '2024-11-06'),  -- Reemplazado por 13
-    ('2024-12-01', 2, 35, '2024-12-03'),  -- Reemplazado por 35
-    ('2024-01-30', 3, 32, '2024-02-03'),  -- Reemplazado por 32
-    ('2024-02-25', 12, 7, '2024-03-01'),  -- Reemplazado por 7
-    ('2024-03-05', 2, 35, NULL),  -- Reemplazado por 35
-    ('2024-04-18', 3, 32, '2024-04-22'),  -- Reemplazado por 32
-    ('2024-05-15', 12, 9, '2024-05-20');
+    ('2024-01-15', 48, 47, '2024-01-20'),
+    ('2024-02-10', 60, 50, NULL),  
+    ('2024-03-25', 66, 51, '2024-03-30'),
+    ('2024-04-14', 60, 52, '2024-04-19'),  
+    ('2024-05-05', 66, 53, NULL),  
+    ('2024-06-17', 68, 54, '2024-06-22'),
+    ('2024-07-21', 70, 55, '2024-07-26'),  
+    ('2024-08-03', 72, 56, NULL),  
+    ('2024-09-19', 76, 57, '2024-09-24'),
+    ('2024-09-11', 60, 59, NULL),
+    ('2024-05-30', 58, 61, '2024-12-05'),
+    ('2024-01-07', 49, 62, '2024-12-12'),  
+    ('2024-01-24', 68, 63, NULL),  
+    ('2024-02-02', 66, 64, '2024-02-07'),
+    ('2024-03-10', 72, 65, NULL),
+    ('2024-04-22', 76, 67, '2024-04-27'),  
+    ('2024-05-15', 79, 69, NULL),  
+    ('2024-06-09', 86, 71, '2024-06-14'),
+    ('2024-07-28', 70, 73, '2024-08-02'),  
+    ('2024-08-19', 60, 74, NULL),  
+    ('2024-09-06', 68, 75, '2024-09-11'),  
+    ('2024-03-15', 49, 77, '2024-10-20'),  
+    ('2024-02-27', 72, 78, NULL),  
+    ('2024-07-13', 66, 80, '2024-12-18'),  
+    ('2024-01-05', 48, 81, NULL),
+    ('2024-02-22', 60, 55, '2024-02-27'),  
+    ('2024-03-30', 79, 83, NULL),  
+    ('2024-04-09', 60, 84, '2024-04-14'),  
+    ('2024-05-25', 66, 85, NULL),  
+    ('2024-06-12', 68, 64, '2024-06-17'),  
+    ('2024-07-14', 70, 56, '2024-07-19'),  
+    ('2024-08-28', 72, 67, NULL),  
+    ('2024-09-07', 76, 62, '2024-09-12'),  
+    ('2024-02-19', 79, 75, '2024-10-24'),  
+    ('2024-01-11', 86, 80, NULL),  
+    ('2024-01-15', 49, 53, '2024-01-20'),  
+    ('2024-02-10', 60, 74, NULL),  
+    ('2024-03-25', 66, 69, '2024-03-30'),  
+    ('2024-04-14', 70, 85, '2024-04-19'),  
+    ('2024-05-01', 72, 78, '2024-05-05'),
+    ('2024-06-02', 79, 54, '2024-06-07'),  
+    ('2024-07-10', 60, 75, '2024-07-12'),  
+    ('2024-08-05', 79, 83, '2024-08-10'),  
+    ('2024-09-12', 79, 50, '2024-09-15'),  
+    ('2024-10-04', 60, 64, NULL),  
+    ('2024-11-01', 72, 67, '2024-11-05'),  
+    ('2024-12-07', 60, 54, '2024-12-10'),
+    ('2024-01-25', 68, 81, '2024-02-01'),  
+    ('2024-02-20', 60, 84, '2024-02-25'),  
+    ('2024-03-15', 66, 56, '2024-03-20'),
+    ('2024-04-01', 72, 83, '2024-04-05'),  
+    ('2024-05-10', 70, 69, '2024-05-15'),  
+    ('2024-06-07', 49, 52, NULL),  
+    ('2024-07-20', 72, 80, '2024-07-22'),  
+    ('2024-08-15', 68, 74, '2024-08-18'),  
+    ('2024-09-01', 60, 75, '2024-09-05'),  
+    ('2024-10-10', 72, 69, '2024-10-13'),  
+    ('2024-11-03', 76, 61, '2024-11-06'),  
+    ('2024-12-01', 60, 55, '2024-12-03'),  
+    ('2024-01-30', 70, 85, '2024-02-03'),  
+    ('2024-02-25', 60, 56, '2024-03-01'),  
+    ('2024-03-05', 68, 55, NULL),  
+    ('2024-04-18', 79, 54, '2024-04-22'),  
+    ('2024-05-15', 60, 63, '2024-05-20');
 
 
 
@@ -477,5 +411,209 @@ VALUES	(35, 18, 3),
 		(31, 37, 4),
 		(32, 13, 2),
 		(33, 8, 1),
-		(34, 29, 5);  
+		(34, 29, 5),
+                      (36, 7, 17),
+                    (36, 25, 10),
+                    (37, 10, 1),
+                    (37, 36, 6),
+                    (37, 22, 25),
+                    (37, 1, 4),
+                    (38, 38, 3),
+                    (38, 13, 23),
+                    (38, 20, 24),
+                    (38, 29, 21),
+                    (39, 28, 10),
+                    (39, 42, 16),
+                    (39, 21, 19),
+                    (40, 27, 16),
+                    (41, 18, 19),
+                    (41, 48, 17),
+                    (42, 1, 21),
+                    (42, 20, 9),
+                    (42, 41, 25),
+                    (42, 18, 15),
+                    (42, 10, 25),
+                    (43, 16, 25),
+                    (43, 4, 10),
+                    (43, 34, 7),
+                    (44, 9, 25),
+                    (45, 49, 22),
+                    (46, 37, 21),
+                    (46, 11, 19),
+                    (46, 31, 1),
+                    (46, 4, 23),
+                    (47, 26, 12),
+                    (48, 47, 2),
+                    (49, 50, 11),
+                    (50, 33, 7),
+                    (51, 44, 5),
+                    (51, 42, 9),
+                    (52, 14, 25),
+                    (52, 11, 20),
+                    (52, 43, 21),
+                    (53, 26, 7),
+                    (53, 39, 16),
+                    (53, 28, 22),
+                    (53, 40, 8),
+                    (54, 9, 14),
+                    (55, 3, 17),
+                    (56, 38, 22),
+                    (56, 33, 9),
+                    (56, 1, 17),
+                    (56, 3, 10),
+                    (57, 43, 15),
+                    (57, 32, 12),
+                    (58, 13, 12),
+                    (59, 48, 10),
+                    (59, 37, 10),
+                    (60, 14, 6),
+                    (60, 49, 18),
+                    (60, 21, 13),
+                    (60, 29, 22),
+                    (60, 2, 10),
+                    (61, 13, 4),
+                    (61, 15, 1),
+                    (61, 40, 8),
+                    (62, 3, 9),
+                    (62, 15, 17),
+                    (62, 17, 13),
+                    (62, 42, 2),
+                    (62, 10, 2),
+                    (63, 22, 14),
+                    (63, 42, 23),
+                    (63, 31, 5),
+                    (63, 1, 11),
+                    (63, 10, 7),
+                    (64, 41, 19),
+                    (64, 31, 11),
+                    (64, 22, 15);
 
+/* INSERT Publicacion */
+INSERT INTO PUBLICACION (ID_VENDEDOR, ID_PRODUCTO, STOCK, ACTIVA)
+VALUES (48, 15, 93, 1),
+(48, 17, 94, 1),
+(48, 25, 93, 1),
+(48, 31, 92, 1),
+(48, 37, 93, 1),
+(49, 7, 107, 1),
+(49, 8, 91, 1),
+(49, 14, 93, 1),
+(49, 25, 100, 1),
+(49, 26, 97, 1),
+(49, 28, 112, 1),
+(49, 39, 106, 1),
+(49, 40, 98, 1),
+(58, 3, 92, 1),
+(60, 1, 135, 1),
+(49, 46, 98, 1),
+(58, 24, 92, 1),
+(60, 23, 135, 1),
+(60, 2, 97, 1),
+(60, 3, 105, 1),
+(60, 4, 92, 1),
+(60, 5, 101, 1),
+(60, 6, 94, 1),
+(60, 8, 96, 1),
+(60, 9, 92, 1),
+(60, 10, 116, 1),
+(60, 11, 92, 1),
+(60, 13, 94, 1),
+(60, 15, 91, 1),
+(60, 16, 94, 1),
+(60, 18, 105, 1),
+(60, 19, 93, 1),
+(60, 20, 99, 1),
+(60, 22, 132, 1),
+(60, 26, 107, 1),
+(60, 27, 92, 1),
+(60, 30, 92, 1),
+(60, 31, 101, 1),
+(60, 33, 99, 1),
+(60, 36, 96, 1),
+(60, 37, 100, 1),
+(60, 38, 112, 1),
+(60, 40, 99, 1),
+(60, 41, 134, 1),
+(60, 45, 93, 1),
+(60, 48, 100, 1),
+(60, 49, 112, 1),
+(60, 50, 106, 1),
+(66, 10, 92, 1),
+(66, 13, 115, 1),
+(66, 19, 91, 1),
+(66, 20, 114, 1),
+(66, 22, 96, 1),
+(66, 25, 96, 1),
+(66, 29, 111, 1),
+(66, 32, 92, 1),
+(66, 33, 97, 1),
+(66, 35, 94, 1),
+(66, 38, 93, 1),
+(66, 42, 93, 1),
+(66, 49, 94, 1),
+(68, 3, 116, 1),
+(68, 5, 93, 1),
+(68, 7, 92, 1),
+(68, 10, 92, 1),
+(68, 11, 94, 1),
+(68, 12, 110, 1),
+(68, 15, 107, 1),
+(68, 17, 103, 1),
+(68, 21, 93, 1),
+(68, 28, 92, 1),
+(68, 33, 91, 1),
+(68, 40, 95, 1),
+(68, 42, 92, 1),
+(68, 47, 92, 0),
+(70, 2, 105, 1),
+(70, 3, 95, 1),
+(70, 5, 91, 1),
+(70, 11, 110, 1),
+(70, 12, 95, 1),
+(70, 14, 123, 1),
+(70, 21, 122, 1),
+(70, 28, 100, 1),
+(70, 29, 112, 0),
+(70, 37, 94, 1),
+(70, 42, 106, 1),
+(70, 43, 111, 1),
+(70, 49, 108, 1),
+(72, 4, 113, 1),
+(72, 6, 93, 1),
+(72, 7, 100, 1),
+(72, 8, 91, 1),
+(72, 9, 109, 1),
+(72, 11, 109, 1),
+(72, 13, 92, 1),
+(72, 27, 106, 1),
+(72, 30, 94, 1),
+(72, 31, 91, 1),
+(72, 32, 102, 1),
+(72, 37, 111, 1),
+(72, 42, 99, 0),
+(72, 43, 105, 1),
+(72, 44, 100, 1),
+(76, 8, 91, 1),
+(76, 9, 91, 1),
+(76, 10, 93, 1),
+(76, 12, 94, 1),
+(76, 13, 102, 1),
+(76, 48, 94, 1),
+(79, 1, 101, 0),
+(79, 4, 100, 1),
+(79, 9, 115, 1),
+(79, 10, 97, 1),
+(79, 11, 91, 1),
+(79, 16, 115, 1),
+(79, 17, 92, 1),
+(79, 18, 109, 1),
+(79, 22, 104, 1),
+(79, 29, 95, 1),
+(79, 31, 95, 1),
+(79, 34, 97, 0),
+(79, 42, 113, 1),
+(79, 48, 107, 1),
+(86, 2, 105, 1),
+(86, 10, 102, 1),
+(86, 18, 93, 1),
+(86, 45, 93, 1);
